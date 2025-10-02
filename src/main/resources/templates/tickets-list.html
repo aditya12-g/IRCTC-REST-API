@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>All Tickets</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+    <h2 class="text-center">📋 All Booked Tickets</h2>
+    <table class="table table-striped mt-4">
+        <thead>
+            <tr>
+                <th>Ticket ID</th>
+                <th>Name</th>
+                <th>Train No</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="t : ${tickets}">
+                <td th:text="${t.ticketId}"></td>
+                <td th:text="${t.name}"></td>
+                <td th:text="${t.trainNum}"></td>
+                <td th:text="${t.fromStation}"></td>
+                <td th:text="${t.toStation}"></td>
+                <td th:text="${t.status}"></td>
+                <td>
+                    <a th:href="@{/ticket/{id}(id=${t.ticketId})}" class="btn btn-info btn-sm">View</a>
+                    <a th:href="@{/cancel/{id}(id=${t.ticketId})}" class="btn btn-danger btn-sm">Cancel</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <a href="/" class="btn btn-secondary">Back</a>
+</body>
+</html>

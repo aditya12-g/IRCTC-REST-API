@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 py-10">
+
+<div class="max-w-3xl mx-auto bg-white shadow-lg rounded-2xl p-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">🎫 Ticket Details</h1>
+
+    <div class="grid grid-cols-2 gap-6">
+        <div>
+            <p class="text-gray-500 text-sm">Ticket ID</p>
+            <p class="text-lg font-semibold text-blue-600" th:text="${ticket.ticketId}"></p>
+        </div>
+        <div>
+            <p class="text-gray-500 text-sm">Passenger Name</p>
+            <p class="text-lg font-semibold text-gray-800" th:text="${ticket.name}"></p>
+        </div>
+        <div>
+            <p class="text-gray-500 text-sm">Train Number</p>
+            <p class="text-lg font-semibold text-gray-800" th:text="${ticket.trainNum}"></p>
+        </div>
+        <div>
+            <p class="text-gray-500 text-sm">Travel Date</p>
+            <p class="text-lg font-semibold text-gray-800" th:text="${ticket.doj}"></p>
+        </div>
+        <div>
+            <p class="text-gray-500 text-sm">From</p>
+            <p class="text-lg font-semibold text-gray-800" th:text="${ticket.fromStation}"></p>
+        </div>
+        <div>
+            <p class="text-gray-500 text-sm">To</p>
+            <p class="text-lg font-semibold text-gray-800" th:text="${ticket.toStation}"></p>
+        </div>
+        <div>
+            <p class="text-gray-500 text-sm">Status</p>
+            <span class="px-3 py-1 rounded-full text-sm font-semibold"
+                  th:text="${ticket.status}"
+                  th:classappend="${ticket.status == 'CONFIRMED'} ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'"></span>
+        </div>
+    </div>
+
+    <div class="mt-8 flex justify-between">
+        <a href="/home"
+           class="px-5 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+           ⬅ Back to Home
+        </a>
+        <a th:href="@{'/cancel/' + ${ticket.ticketId}}"
+           class="px-5 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition">
+           ❌ Cancel Ticket
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

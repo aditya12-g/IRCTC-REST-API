@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cancel Ticket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+<div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full">
+    <h1 class="text-3xl font-bold text-red-600 mb-6 text-center">🎟️ Cancel Ticket</h1>
+
+    <!-- Cancel Form -->
+    <form th:action="@{/cancelTicket}" method="post" class="space-y-4">
+        <div>
+            <label for="ticketId" class="block text-gray-700 font-medium">Enter Ticket ID</label>
+            <input type="text" id="ticketId" name="ticketId"
+                   class="w-full mt-2 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                   placeholder="Enter your ticket ID" required>
+        </div>
+
+        <button type="submit"
+                class="w-full px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow hover:bg-red-700 transition">
+            Cancel Ticket
+        </button>
+    </form>
+	
+	<!-- Success / Error Message -->
+	<div th:if="${msg}" 
+	     class="mt-4 p-3 rounded-lg text-center"
+	     th:classappend="${msg.contains('success')} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+	    <p th:text="${msg}"></p>
+	</div>
+
+    <!-- Back to Home -->
+    <div class="mt-6 text-center">
+        <a th:href="@{/home}" 
+           class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition">
+            ⬅ Back to Home
+        </a>
+    </div>
+	
+	
+</div>
+
+</body>
+</html>

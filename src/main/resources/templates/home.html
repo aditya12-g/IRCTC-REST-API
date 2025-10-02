@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>IRCTC Ticket Booking</title>
+    <link rel="stylesheet" 
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+        <div class="container">
+            <a class="navbar-brand fw-bold" th:href="@{/home}">IRCTC App</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+                    data-bs-target="#navbarNav" aria-controls="navbarNav" 
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="bg-primary text-white text-center py-5">
+        <h1 class="display-5 fw-bold">Welcome to IRCTC Ticket Booking</h1>
+        <p class="lead">Book, view, update, and cancel your train tickets easily.</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <div class="row g-4">
+
+            <!-- Book Ticket -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Book a Ticket</h5>
+                        <p class="card-text text-muted">Reserve your train ticket in just a few clicks.</p>
+                        <a th:href="@{/book-ticket}" class="btn btn-primary">Book Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View All Tickets -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">View All Tickets</h5>
+                        <p class="card-text text-muted">Check all your booked tickets at one place.</p>
+                        <a th:href="@{/tickets-list}" class="btn btn-success">View Tickets</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cancel Ticket -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Cancel Ticket</h5>
+                        <p class="card-text text-muted">Easily cancel a ticket if your plan changes.</p>
+                        <!-- FIXED: Go to cancel form, not cancel-success -->
+                        <a th:href="@{/cancel-ticket}" class="btn btn-danger">Cancel Ticket</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-3 mt-5">
+        <p class="mb-0">&copy; 2025 IRCTC App | Designed with ❤️ using Spring Boot & Thymeleaf</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
