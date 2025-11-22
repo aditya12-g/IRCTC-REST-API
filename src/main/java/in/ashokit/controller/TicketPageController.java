@@ -15,7 +15,7 @@ import java.util.List;
 public class TicketPageController {
 
     @Autowired
-    private TicketInfoService ticketInfoServices;
+    private TicketInfoService ticketInfoService;
 
     
     @GetMapping("/home")
@@ -38,7 +38,7 @@ public class TicketPageController {
     
     @PostMapping("/book-ticket")
     public String bookTicketSubmit(@ModelAttribute Passenger passenger, Model model) {
-        TicketInfo ticket = ticketInfoServices.bookTicket(passenger);
+        TicketInfo ticket = ticketInfoService.bookTicket(passenger);
         model.addAttribute("ticket", ticket);
         return "ticket-success";
     }
@@ -46,7 +46,7 @@ public class TicketPageController {
    
     @GetMapping("/tickets-list")
     public String viewTickets(Model model) {
-        List<TicketInfo> tickets = ticketInfoServices.getAllTickets();
+        List<TicketInfo> tickets = ticketInfoService.getAllTickets();
         model.addAttribute("tickets", tickets);
         return "tickets-list";
     }
@@ -54,7 +54,7 @@ public class TicketPageController {
     
     @GetMapping("/ticket/{ticketId}")
     public String ticketDetails(@PathVariable Integer ticketId, Model model) {
-        TicketInfo ticket = ticketInfoServices.getTicketById(ticketId);
+        TicketInfo ticket = ticketInfoService.getTicketById(ticketId);
         model.addAttribute("ticket", ticket);
         return "ticket-details";
     }
@@ -66,7 +66,7 @@ public class TicketPageController {
     
     @GetMapping("/cancel/{ticketId}")
     public String cancelTicketFromList(@PathVariable Integer ticketId, Model model) {
-        String msg = ticketInfoServices.cancelTicket(ticketId);
+        String msg = ticketInfoService.cancelTicket(ticketId);
         model.addAttribute("msg", msg);
         model.addAttribute("ticketId", ticketId);
         return "cancel-success";
@@ -74,7 +74,7 @@ public class TicketPageController {
     
     @PostMapping("/cancelTicket")
     public String cancelTicket(@RequestParam("ticketId") Integer ticketId, Model model) {
-        String msg = ticketInfoServices.cancelTicket(ticketId);
+        String msg = ticketInfoService.cancelTicket(ticketId);
         model.addAttribute("msg", msg);
         return "cancel-ticket"; 
     }
