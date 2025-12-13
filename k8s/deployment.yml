@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: irctc-api
+  labels:
+    app: irctc-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: irctc-api
+  template:
+    metadata:
+      labels:
+        app: irctc-api
+    spec:
+      containers:
+        - name: irctc-api
+          image: 024848440975.dkr.ecr.ap-south-1.amazonaws.com/irctc-rest-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 15
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 10
