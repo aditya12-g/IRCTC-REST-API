@@ -1,17 +1,15 @@
 spring:
+  application:
+    name: 12-IRCTCAPP-RestApiDevelopment
+
   datasource:
-    url: jdbc:mysql://localhost:3306/sbms36?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: root
-    password: Aditya@123
-    driver-class-name: com.mysql.cj.jdbc.Driver  
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-    database-platform: org.hibernate.dialect.MySQL8Dialect 
-
-  application:
-    name: 12-IRCTCAPP-RestApiDevelopment
-
-
+    database-platform: org.hibernate.dialect.MySQL8Dialect

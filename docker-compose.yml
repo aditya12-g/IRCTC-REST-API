@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: irctc-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: irctcdb
+      MYSQL_USER: irctcuser
+      MYSQL_PASSWORD: irctcpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - irctc-network
+
+  irctc-app:
+    image: adityag14/irctc:latest
+    container_name: irctc-app
+    restart: always
+    depends_on:
+      - mysql-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/irctcdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: irctcuser
+      SPRING_DATASOURCE_PASSWORD: irctcpass
+    ports:
+      - "8083:8080"
+    networks:
+      - irctc-network
+
+networks:
+  irctc-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+
