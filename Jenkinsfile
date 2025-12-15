@@ -1,14 +1,14 @@
 pipeline {
     agent any
 
-    environment {
-        SONAR_TOKEN            = credentials('sonar-token')
-        AWS_ACCESS_KEY_ID      = credentials('aws-access-key')
-        AWS_SECRET_ACCESS_KEY  = credentials('aws-secret-key')
+    tools {
+        jdk 'jdk17'
+        maven 'maven'
+    }
 
-        IMAGE_NAME = "irctc-rest-api"
-        AWS_REGION = "ap-south-1"
-        ECR_REPO   = "024848440975.dkr.ecr.${AWS_REGION}.amazonaws.com/${IMAGE_NAME}:latest"
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+        DOCKER_IMAGE = "adityag14/irctc:latest"
     }
 
     stages {
@@ -16,19 +16,36 @@ pipeline {
         stage('Git Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/aditya12-g/IRCTC-REST-API.git',
-                    credentialsId: 'github-token'
+                    url: 'https://github.com/aditya12-g/IRCTC-REST-API.git'
+            }
+        }
+
+        stage('Maven Compile') {
+            steps {
+                sh "mvn compile"
+            }
+        }
+
+        stage('Maven Test') {
+            steps {
+                sh "mvn test -DskipTests=true"
+            }
+        }
+
+        stage('File System Scan') {
+            steps {
+                sh "trivy fs --format table -o trivy-fs-report.html ."
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonarqube') {
+                withSonarQubeEnv('sonar') {
                     sh '''
-                       mvn clean package -DskipTests sonar:sonar \
-                      -Dsonar.projectKey=irctc \
-                      -Dsonar.host.url=http://13.201.13.138:9000 \
-                      -Dsonar.login=$SONAR_TOKEN
+                    $SCANNER_HOME/bin/sonar-scanner \
+                    -Dsonar.projectName=irctc \
+                    -Dsonar.projectKey=irctc \
+                    -Dsonar.java.binaries=target/classes
                     '''
                 }
             }
@@ -36,54 +53,117 @@ pipeline {
 
         stage('Maven Build') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh "mvn package -DskipTests=true"
             }
         }
 
-        stage('Docker Build') {
+        stage('Publish to Nexus') {
             steps {
-                sh 'docker build -t irctc-rest-api .'
+                withMaven(globalMavenSettingsConfig: 'maven-setting', jdk: 'jdk17', maven: 'maven') {
+                    sh "mvn deploy -DskipTests=true"
+                }
             }
         }
 
-        stage('Trivy Scan') {
+        stage('Docker Build & Tag') {
             steps {
-                sh 'trivy image --severity HIGH,CRITICAL irctc-rest-api'
+                script {
+                    withDockerRegistry(credentialsId: 'docker-cred') {
+                        sh "docker build -t ${DOCKER_IMAGE} ."
+                    }
+                }
             }
         }
 
-        stage('Push to ECR') {
+        stage('Docker Image Scan') {
             steps {
-                sh '''
-                  aws ecr get-login-password --region ap-south-1 | \
-                  docker login --username AWS --password-stdin 024848440975.dkr.ecr.ap-south-1.amazonaws.com
-
-                  docker tag irctc-rest-api $ECR_REPO
-                  docker push $ECR_REPO
-                '''
+                sh "trivy image --format table -o trivy-image-report.html ${DOCKER_IMAGE}"
+                archiveArtifacts artifacts: 'trivy-image-report.html', fingerprint: true
             }
         }
 
-        stage('Deploy to EKS') {
+        stage('Push Docker Image') {
             steps {
-                sh '''
-                  aws eks --region ap-south-1 update-kubeconfig --name <CLUSTER_NAME>
+                script {
+                    withDockerRegistry(credentialsId: 'docker-cred') {
+                        sh "docker push ${DOCKER_IMAGE}"
+                    }
+                }
+            }
+        }
 
-                  kubectl apply -f k8s/deployment.yaml
-                  kubectl apply -f k8s/service.yaml
-                '''
+        stage('Deploy to Container') {
+            steps {
+                script {
+                    sh '''
+                    docker-compose down || true
+                    docker-compose pull
+                    docker-compose up -d
+                    '''
+                }
+            }
+        }
+        
+         stage('Deploy To Kubernetes') {
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: 'irctc-eks', contextName: '', credentialsId: 'k8s-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://F370A704FD95BA558E834A59AC8A1ABA.gr7.ap-south-1.eks.amazonaws.com') {
+                   sh '''
+            kubectl apply -f k8s/mysql-secret.yml -n webapps
+            kubectl apply -f k8s/mysql-pvc.yml -n webapps
+            kubectl apply -f k8s/mysql-deployment.yml -n webapps
+            kubectl apply -f k8s/mysql-service.yml -n webapps
+            kubectl apply -f k8s/deployment-service.yml -n webapps
+            '''
+
+                }
+            }
+        }
+        
+         stage('Verify the Deployment') {
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: 'irctc-eks', contextName: '', credentialsId: 'k8s-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://F370A704FD95BA558E834A59AC8A1ABA.gr7.ap-south-1.eks.amazonaws.com') {
+                    sh "kubectl get pods -n webapps"
+                    sh "kubectl get svc -n webapps"
+                }
             }
         }
     }
 
     post {
-        success {
-            echo "Pipeline completed successfully! 🎉"
-        }
-        failure {
-            echo "Pipeline failed. ❌ Check logs."
+        always {
+            script {
+                def jobName = env.JOB_NAME
+                def buildNumber = env.BUILD_NUMBER
+                def pipelineStatus = currentBuild.result ?: 'SUCCESS'
+                def bannerColor = pipelineStatus.toUpperCase() == 'SUCCESS' ? 'green' : 'red'
+
+                def body = """
+                <html>
+                <body>
+                <div style="border: 4px solid ${bannerColor}; padding: 10px;">
+                <h2>${jobName} - Build ${buildNumber}</h2>
+                <div style="background-color: ${bannerColor}; padding: 10px;">
+                <h3 style="color: white;">Pipeline Status: ${pipelineStatus.toUpperCase()}</h3>
+                </div>
+                <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
+                </div>
+                </body>
+                </html>
+                """
+
+                emailext(
+                    subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus.toUpperCase()}",
+                    body: body,
+                    to: 'adityagangthade1998@gmail.com',
+                    from: 'jenkins@example.com',
+                    replyTo: 'jenkins@example.com',
+                    mimeType: 'text/html',
+                    attachmentsPattern: 'trivy-image-report.html'
+                )
+            }
         }
     }
 }
+
 
 
